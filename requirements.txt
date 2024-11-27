@@ -1,0 +1,6 @@
+fastapi
+starlette
+uvicorn
+msgpack
+pycryptodome
+apscheduler
