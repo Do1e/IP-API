@@ -8,7 +8,7 @@
 
 1. `KEY`: 用于czdb解码的密钥，不配置则关闭解析地理位置信息
 2. `DOWNLOAD_KEY`：下载czdb的UUID，指下载链接后面的key参数
-3. `UPDATE_TIME`：每天更新czdb的时间，默认为`12:00`秒
+3. `UPDATE_TIME`：每天更新czdb的时间，默认为`12:00`
 4. `SUBURL`：api的子路径，默认为`/`
 5. `PORT`：端口，默认为`8000`
 
