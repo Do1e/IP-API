@@ -8,7 +8,7 @@
 
 1. `KEY`: 用于czdb解码的密钥，不配置则关闭解析地理位置信息
 2. `DOWNLOAD_KEY`：下载czdb的UUID，指下载链接后面的key参数
-3. `UPDATE_TIME`：每天更新czdb的时间，默认为`12:00`
+3. `UPDATE_TIME`：每天更新czdb的时间，默认为`12:00`，需要注意的是这个时间默认为格林威治标准时间。
 4. `SUBURL`：api的子路径，默认为`/`
 5. `PORT`：端口，默认为`8000`
 
@@ -58,6 +58,8 @@ server {
     }
 }
 ```
+
+加上`-v /etc/localtime:/etc/localtime:ro`以使用系统时间进行更新。或者`-e TZ=xxx`指定时区，如`-e TZ=Asia/Shanghai`。
 
 #### 返回示例
 
