@@ -111,3 +111,5 @@ npm install -g vercel
 vercel login
 vercel --prod
 ```
+
+注：Vercel部署时`DB_PATH`仅能在/tmp目录下
