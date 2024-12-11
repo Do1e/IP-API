@@ -1,6 +1,7 @@
 import os
-import subprocess
 import logging
+import zipfile
+import requests
 
 
 def download(db_path):
@@ -12,25 +13,27 @@ def download(db_path):
     if not key:
         raise ValueError("Please set the DOWNLOAD_KEY environment variable")
     link = f"https://www.cz88.net/api/communityIpAuthorization/communityIpDbFile?fn=czdb&key={key}"
-    result = subprocess.run(
-        ["curl", "-o", filenames[0], link], capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        logging.warning(result.stderr)
-    if not os.path.exists(filenames[0]):
-        logging.error("Download failed")
+    try:
+        response = requests.get(link)
+        with open(filenames[0], "wb") as f:
+            f.write(response.content)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Download failed: {e}")
         return False
-    result = subprocess.run(
-        ["unzip", "-o", filenames[0], "-d", db_path], capture_output=True, text=True
-    )
-    if result.returncode != 0:
-        logging.error(result.stderr)
+
+    try:
+        with zipfile.ZipFile(filenames[0], "r") as zip_ref:
+            zip_ref.extractall(db_path)
+    except zipfile.BadZipFile as e:
+        logging.error(f"Bad zip file: {e}")
         return False
+
     if not os.path.exists(filenames[1]) or not os.path.exists(filenames[2]):
         logging.error("Unzip failed")
         return False
     if os.path.exists(filenames[0]):
         os.remove(filenames[0])
+    logging.info("Update succeeded")
     return True
 
 

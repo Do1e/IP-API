@@ -11,6 +11,7 @@
 3. `UPDATE_TIME`：每天更新czdb的时间，默认为`12:00`，需要注意的是这个时间默认为格林威治标准时间。
 4. `SUBURL`：api的子路径，默认为`/`
 5. `PORT`：端口，默认为`8000`
+6. `DB_PATH`：czdb文件路径，默认为`./data`
 
 ## 使用
 
@@ -83,7 +84,7 @@ IPv6
 }
 ```
 
-### 本地
+### 本地或Vercel部署
 
 ```bash
 git clone https://github.com/tagphi/czdb_searcher_python.git
@@ -99,4 +100,14 @@ PORT=5125
 SUBURL=get-ip
 DOWNLOAD_KEY=abcdefgh-0312-2001-3012-666666666666
 KEY=ABCDEFGhijklmnopqrsTUV==
+DB_PATH=/tmp
+UPDATE_TIME=12:00
+```
+
+完成上述配置后，可以使用`vercel`部署。
+
+```bash
+npm install -g vercel
+vercel login
+vercel --prod
 ```
