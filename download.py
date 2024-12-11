@@ -4,6 +4,8 @@ import logging
 
 
 def download(db_path):
+    if not os.path.exists(db_path):
+        os.makedirs(db_path)
     filenames = ["czdb.zip", "cz88_public_v4.czdb", "cz88_public_v6.czdb"]
     filenames = [f"{db_path}/{filename}" for filename in filenames]
     key = os.environ.get("DOWNLOAD_KEY")

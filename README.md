@@ -14,6 +14,8 @@
 
 ## 使用
 
+### Docker
+
 #### 无CZDB启动，仅返回IP
 
 ```bash
@@ -79,4 +81,22 @@ IPv6
   "region": "中国 教育网",
   "error": null
 }
+```
+
+### 本地
+
+```bash
+git clone https://github.com/tagphi/czdb_searcher_python.git
+mv czdb_searcher_python/czdb .
+rm -rf czdb_searcher_python
+pip install -r requirements.txt
+```
+
+新建`.env`文件如下，填入环境变量，然后运行`python main.py`即可。
+
+```dotenv
+PORT=5125
+SUBURL=get-ip
+DOWNLOAD_KEY=abcdefgh-0312-2001-3012-666666666666
+KEY=ABCDEFGhijklmnopqrsTUV==
 ```

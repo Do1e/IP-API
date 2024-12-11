@@ -4,10 +4,13 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 import uvicorn
+from dotenv import load_dotenv
 import os
 import logging
 from czdb.db_searcher import DbSearcher
 from download import download
+
+load_dotenv()
 
 key = os.environ.get("KEY")
 suburl = os.environ.get("SUBURL", "/")
@@ -64,17 +67,38 @@ async def get_ip(request: Request):
         if key:
             if "." in client_ip:
                 db_searcher = DbSearcher(f"{db_path}/cz88_public_v4.czdb", "BTREE", key)
+                db_update_time = (
+                    db_searcher.search("255.255.255.255")
+                    .decode("utf-8")
+                    .split("\t")[1]
+                    .replace("IP数据", "")
+                )
             else:
                 db_searcher = DbSearcher(f"{db_path}/cz88_public_v6.czdb", "BTREE", key)
-            region = db_searcher.search(client_ip)
+                db_update_time = None
+            region = db_searcher.search(client_ip).decode("utf-8")
             region = region.replace("\t", " ") if region else None
         else:
             region = None
-        return JSONResponse(content={"ip": client_ip, "region": region, "error": None})
+            db_update_time = None
+        return JSONResponse(
+            content={
+                "ip": client_ip,
+                "region": region,
+                "db_update_time": db_update_time,
+                "error": None,
+            }
+        )
     except Exception as e:
         region = None
+        db_update_time = None
         return JSONResponse(
-            content={"ip": client_ip, "region": region, "error": str(e)},
+            content={
+                "ip": client_ip,
+                "region": region,
+                "db_update_time": db_update_time,
+                "error": str(e),
+            },
             status_code=500,
         )
 
