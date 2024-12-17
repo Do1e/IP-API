@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.responses import JSONResponse
+from fastapi.responses import JSONResponse
 import uvicorn
 from dotenv import load_dotenv
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -44,20 +44,22 @@ app.add_middleware(
 @app.get(suburl)
 async def get_ip(request: Request):
     client_ip = request.client.host
+    if request.query_params.get("ip"):
+        client_ip = request.query_params["ip"]
     try:
         if key:
             if "." in client_ip:
                 db_searcher = DbSearcher(f"{db_path}/cz88_public_v4.czdb", "BTREE", key)
-                db_update_time = (
-                    db_searcher.search("255.255.255.255")
-                    .decode("utf-8")
-                    .split("\t")[1]
-                    .replace("IP数据", "")
-                )
+                res = db_searcher.search("255.255.255.255")
+                if isinstance(res, bytes):
+                    res = res.decode("utf-8")
+                db_update_time = res.split("\t")[1].replace("IP数据", "")
             else:
                 db_searcher = DbSearcher(f"{db_path}/cz88_public_v6.czdb", "BTREE", key)
                 db_update_time = None
-            region = db_searcher.search(client_ip).decode("utf-8")
+            region = db_searcher.search(client_ip)
+            if isinstance(region, bytes):
+                region = region.decode("utf-8")
             region = region.replace("\t", " ") if region else None
         else:
             region = None
