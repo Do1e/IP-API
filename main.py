@@ -25,9 +25,7 @@ logging.info(f"update_time: {update_time}")
 logging.info(f"db_path: {db_path}")
 
 if key:  # 如果配置可czdb的密钥，就会每天定时更新
-    if not os.path.exists(f"{db_path}/cz88_public_v4.czdb") or not os.path.exists(
-        f"{db_path}/cz88_public_v6.czdb"
-    ):
+    if not os.path.exists(f"{db_path}/cz88_public_v4.czdb") or not os.path.exists(f"{db_path}/cz88_public_v6.czdb"):
         download(db_path)
 
 app = FastAPI()
@@ -48,6 +46,8 @@ async def get_ip(request: Request):
         client_ip = request.query_params["ip"]
     try:
         if key:
+            if not os.path.exists(f"{db_path}/cz88_public_v4.czdb") or not os.path.exists(f"{db_path}/cz88_public_v6.czdb"):
+                download(db_path)
             if "." in client_ip:
                 db_searcher = DbSearcher(f"{db_path}/cz88_public_v4.czdb", "BTREE", key)
                 res = db_searcher.search("255.255.255.255")
@@ -56,7 +56,10 @@ async def get_ip(request: Request):
                 db_update_time = res.split("\t")[1].replace("IP数据", "")
             else:
                 db_searcher = DbSearcher(f"{db_path}/cz88_public_v6.czdb", "BTREE", key)
-                db_update_time = None
+                res = db_searcher.search("::1")
+                if isinstance(res, bytes):
+                    res = res.decode("utf-8")
+                db_update_time = res.split("\t")[1].replace("IP数据", "")
             region = db_searcher.search(client_ip)
             if isinstance(region, bytes):
                 region = region.decode("utf-8")
