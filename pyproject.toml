@@ -1,7 +1,7 @@
 [project]
 name = "ip-api"
-version = "0.1.0"
-description = "Add your description here"
+version = "2.0.0"
+description = "支持跨域的IP查询服务，返回访问者的IP及其地理位置信息。"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
