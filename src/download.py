@@ -1,21 +1,21 @@
-import os
 import logging
 import zipfile
+from pathlib import Path
+
 import requests
 
 
-def download(db_path):
-    if not os.path.exists(db_path):
-        os.makedirs(db_path)
+def download(db_path, key):
+    if not Path(db_path).exists():
+        Path(db_path).mkdir(parents=True)
     filenames = ["czdb.zip", "cz88_public_v4.czdb", "cz88_public_v6.czdb"]
     filenames = [f"{db_path}/{filename}" for filename in filenames]
-    key = os.environ.get("DOWNLOAD_KEY")
     if not key:
-        raise ValueError("Please set the DOWNLOAD_KEY environment variable")
+        raise ValueError("Please provide the download key")
     link = f"https://www.cz88.net/api/communityIpAuthorization/communityIpDbFile?fn=czdb&key={key}"
     try:
         response = requests.get(link)
-        with open(filenames[0], "wb") as f:
+        with Path(filenames[0]).open("wb") as f:
             f.write(response.content)
     except requests.exceptions.RequestException as e:
         logging.error(f"Download failed: {e}")
@@ -28,14 +28,10 @@ def download(db_path):
         logging.error(f"Bad zip file: {e}")
         return False
 
-    if not os.path.exists(filenames[1]) or not os.path.exists(filenames[2]):
+    if not Path(filenames[1]).exists() or not Path(filenames[2]).exists():
         logging.error("Unzip failed")
         return False
-    if os.path.exists(filenames[0]):
-        os.remove(filenames[0])
+    if Path(filenames[0]).exists():
+        Path(filenames[0]).unlink()
     logging.info("Update succeeded")
     return True
-
-
-if __name__ == "__main__":
-    print(download())

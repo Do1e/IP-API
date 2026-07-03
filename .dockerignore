@@ -1,0 +1,6 @@
+*
+!html
+!src
+!pyproject.toml
+!uv.lock
+src/__pycache__

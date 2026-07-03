@@ -1,0 +1,10 @@
+services:
+  ipapi:
+    image: do1e/ip-api:latest
+    container_name: ipapi
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./data:/app/data
+    env_file:
+      - .env

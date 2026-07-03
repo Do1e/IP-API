@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>IP 地址查询</title>
+  <meta name="description" content="一个简洁的 IP 地址查询页面，支持 IPv4 和 IPv6 查询，提供地理位置信息。">
+  <meta name="keywords" content="IP查询, IPv4, IPv6, 地理位置, IP地址查询, Do1e">
+  <script src="https://cdn.tailwindcss.com"></script> 
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden transition-all duration-300">
+    <div class="p-6 sm:p-10">
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">IP 地址查询</h1>
+
+      <!-- 切换 IPv4 / IPv6 -->
+      <div class="flex justify-center mb-6">
+        <div class="inline-flex items-center bg-gray-100 rounded-full p-1">
+          <button id="ipv4Btn" class="px-4 py-2 rounded-full text-sm font-medium bg-blue-500 text-white">IPv4 查询</button>
+          <button id="ipv6Btn" class="px-4 py-2 rounded-full text-sm font-medium text-gray-700 ml-1">IPv6 查询</button>
+        </div>
+      </div>
+
+      <!-- 输入框与按钮 -->
+      <div class="flex flex-col sm:flex-row gap-4 mb-8">
+        <input id="ipInput" type="text" placeholder="请输入IP地址..." 
+               class="flex-grow px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400" />
+        <button id="queryBtn" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">查询</button>
+        <button id="currentBtn" class="px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors">当前IP</button>
+      </div>
+
+      <!-- 加载动画 -->
+      <div id="loading" class="hidden flex justify-center my-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+
+      <!-- 错误信息 -->
+      <div id="errorBox" class="hidden bg-red-100 border-l-4 border-red-500 text-red-700 p-4 rounded-md mb-6">
+        <p id="errorMsg">错误信息</p>
+      </div>
+
+      <!-- 结果展示 -->
+      <div id="resultBox" class="hidden bg-gray-50 rounded-lg p-6 shadow-inner">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">IP 信息</h2>
+        <dl class="grid grid-cols-1 gap-x-4 gap-y-2 sm:grid-cols-2">
+          <div>
+            <dt class="text-sm font-medium text-gray-500">IP 地址</dt>
+            <dd class="mt-1 text-sm text-gray-900" id="ipAddr">-</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">地理位置</dt>
+            <dd class="mt-1 text-sm text-gray-900" id="region">-</dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-gray-500">数据库更新时间</dt>
+            <dd class="mt-1 text-sm text-gray-900" id="dbTime">-</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ipv4Btn = document.getElementById('ipv4Btn');
+    const ipv6Btn = document.getElementById('ipv6Btn');
+    const ipInput = document.getElementById('ipInput');
+    const queryBtn = document.getElementById('queryBtn');
+    const currentBtn = document.getElementById('currentBtn');
+    const loading = document.getElementById('loading');
+    const errorBox = document.getElementById('errorBox');
+    const errorMsg = document.getElementById('errorMsg');
+    const resultBox = document.getElementById('resultBox');
+    const ipAddr = document.getElementById('ipAddr');
+    const region = document.getElementById('region');
+    const dbTime = document.getElementById('dbTime');
+
+    let isV4 = !window.location.hostname.toLowerCase().startsWith('ipv6');
+
+    function showError(msg) {
+      errorBox.classList.remove('hidden');
+      errorMsg.textContent = msg;
+      resultBox.classList.add('hidden');
+    }
+
+    function showResult(data) {
+      ipAddr.textContent = data.ip || '-';
+      region.textContent = data.region || '-';
+      dbTime.textContent = data.db_update_time || '-';
+      resultBox.classList.remove('hidden');
+      errorBox.classList.add('hidden');
+    }
+
+    async function fetchIPInfo(url) {
+      loading.classList.remove('hidden');
+      try {
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data.error) {
+          showError(data.error);
+        } else {
+          showResult(data);
+        }
+      } catch (err) {
+        showError('无法获取数据，请检查网络连接或IP格式');
+      } finally {
+        loading.classList.add('hidden');
+      }
+    }
+
+    ipv4Btn.addEventListener('click', () => {
+      isV4 = true;
+      ipv4Btn.classList.add('bg-blue-500', 'text-white');
+      ipv6Btn.classList.remove('bg-blue-500', 'text-white');
+      ipv6Btn.classList.add('text-gray-700');
+      fetchIPInfo('{{ IPV4_BASEURL }}/get-ip');
+    });
+
+    ipv6Btn.addEventListener('click', () => {
+      isV4 = false;
+      ipv6Btn.classList.add('bg-blue-500', 'text-white');
+      ipv4Btn.classList.remove('bg-blue-500', 'text-white');
+      ipv4Btn.classList.add('text-gray-700');
+      fetchIPInfo('{{ IPV6_BASEURL }}/get-ip');
+    });
+
+    queryBtn.addEventListener('click', () => {
+      const ip = ipInput.value.trim();
+      if (!ip) return;
+      const base = isV4 ? '{{ IPV4_BASEURL }}/get-ip'  : '{{ IPV6_BASEURL }}/get-ip'; 
+      fetchIPInfo(`${base}?ip=${encodeURIComponent(ip)}`);
+    });
+
+    currentBtn.addEventListener('click', () => {
+      const base = isV4 ? '{{ IPV4_BASEURL }}/get-ip'  : '{{ IPV6_BASEURL }}/get-ip'; 
+      fetchIPInfo(base);
+    });
+
+    window.addEventListener('load', () => {
+      if (isV4) {
+        ipv4Btn.classList.add('bg-blue-500', 'text-white');
+        ipv6Btn.classList.remove('bg-blue-500', 'text-white');
+        ipv6Btn.classList.add('text-gray-700');
+      } else {
+        ipv6Btn.classList.add('bg-blue-500', 'text-white');
+        ipv4Btn.classList.remove('bg-blue-500', 'text-white');
+        ipv4Btn.classList.add('text-gray-700');
+      }
+      
+      fetchIPInfo(isV4 ? '{{ IPV4_BASEURL }}/get-ip'  : '{{ IPV6_BASEURL }}/get-ip'); 
+    });
+  </script>
+</body>
+</html>

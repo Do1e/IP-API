@@ -1,14 +1,20 @@
-FROM python:3.12-slim
-
+FROM ghcr.io/astral-sh/uv:python3.14-bookworm-slim AS builder
+ENV UV_INDEX_URL=https://mirror.nju.edu.cn/pypi/web/simple \
+    UV_LINK_MODE=copy \
+    UV_COMPILE_BYTECODE=1 \
+    UV_PROJECT_ENVIRONMENT=/app/.venv
 WORKDIR /app
-COPY requirements.txt .
-RUN sed -i 's|http://deb.debian.org/debian|https://mirror.nju.edu.cn/debian|' /etc/apt/sources.list.d/debian.sources
-RUN apt-get update && apt-get install -y git curl zip
-RUN git clone https://github.com/tagphi/czdb_searcher_python.git && \
-    mv czdb_searcher_python/czdb . && \
-    rm -rf czdb_searcher_python
-RUN pip3 install -i https://mirror.nju.edu.cn/pypi/web/simple --no-cache-dir -r requirements.txt
-COPY main.py .
-COPY download.py .
-VOLUME /app/data
-CMD ["python3", "main.py"]
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+FROM python:3.14-slim-bookworm AS runtime
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libssl3 libffi8 && \
+    rm -rf /var/lib/apt/lists/*
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1
+WORKDIR /app
+COPY . /app
+CMD ["python", "-m", "src.main"]
